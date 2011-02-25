@@ -1,0 +1,515 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+The parser is case-sensitive and all elements, attributes, etc... must be in lowercase
+Elements or attributes not marked as "required" are optional
+Colors are specified as a whitespace separated list of 3 or 4 components in [0,1] range and in R, G, B, A order
+  If not specified, the alpha component is assumed to be 0.0
+Dimensions must be expressed in percents of the enclosing block dimensions (suffix "%") or absolute pixels (suffix "px"),
+  while dimension-less values are typically expressed in [0,1] range
+-->
+
+<!--
+Templates are simply directories containing:
+  - An Info.plist file describing the template
+  - One or more .page files
+  - Zero or more .include files
+  - An optional Localizable.strings file containing the common text
+  - Optional Localizable.XXX.strings files containing localized text where XXX is the current language e.g. "en", "fr"...
+  - Built-in asset files like images
+
+The top-level element of a .page must be "page"
+
+Built-in states:
+  - "portrait": applied when in portrait orientation
+  - "landscape: applied when in landscape orientation
+
+Built-in animations:
+  - "enter": run when entering a series of pages
+  - "show": run when showing a page
+  - "hide": run when hiding a page
+  - "exit": run when exiting a series of pages
+  - "loop": run continuously while the page is visible (requires the "loop" attribute to be "yes")
+-->
+<page>
+  
+  <!--
+    Includes the content of a .include file whose top-level element must be "include"
+    The "variables", "virtual-blocks", "function-blocks" and "blocks" children of this "include" element will be merged into the page
+  -->
+  <include>Common</include>
+  
+  
+  <!--
+    You can define variables to be used in attribute or values e.g. <element name="@variable1">@variable2</element>
+    The variable is simply replaced by its contents
+    By convention, variables have camelcased names and end with an underscore if built-in i.e. set by the application
+  -->
+  <variables>
+    <variable1>value1</variable1>
+    <variable2>value2</variable2>
+  </variables>
+  
+  
+  <!--
+    You can define virtual blocks, which are blocks that can be copied in-place elsewhere in the page
+    Define the blocks the same way as in a "blocks" element of a "group" block, except they must all have an "id" attribute
+  -->
+  <virtual-blocks>
+    <!-- ... -->
+  </virtual-blocks>
+  
+  
+  <!--
+    You can define function blocks, which are virtual blocks but with extra variables
+    Define the blocks the same way as in a "blocks" element of a "group" block, except they must all have an "id" attribute
+  -->
+  <function-blocks>
+    <!-- ... -->
+  </function-blocks>
+  
+  
+  <!--
+    You can define arbitrary key / value pairs of information that is application dependent
+  -->
+  <info>
+    <foo>bar</foo>
+  </info>
+  
+  
+  <!--
+    Background color for the page (default is none)
+    For performance reasons, you should only set this when necessary
+  -->
+  <background-color>0.1 0.1 0.1</background-color>
+  
+  
+  <!--
+    Background image pattern for the page (default is none)
+    For performance reasons, you should only set this when necessary
+    This setting overrides "background-color"
+  -->
+  <background-pattern>Pattern.png</background-pattern>
+  
+  
+  <!--
+    Clips the rendering of the page blocks to the page (default is "no")
+  -->
+  <clipping>yes</clipping>
+  
+  
+  <!--
+    List of blocks in the page (required)
+  -->
+  <blocks>
+    
+    
+    <!--
+      Blocks are of a given type: "virtual", "function", "group", "gradient", "image", "pattern", "string" or "text"
+      The block position is defined as the location of its anchor relative to the "referential" anchor of a "referential" block
+      By default, the anchor and referential anchor are the centers of the blocks and the referential block is the parent block
+      Supported attributes:
+        - "type": the type of the block (required)
+        - "id": uniquely identifies the block at the page level
+        - "source-id": id of a sibling block, which must have been defined before this one, whose content to use instead of the locally defined one
+        - "hit-testing": "enabled", "disabled" or "ignored" value indicating how the block is hit-testable (default is "enabled")
+        - "hit-id": id of a sibling block, which must have been defined before this one, to return as the proxy "hit" block on successful hit testing (default is undefined)
+        - "anchor": location of the block's anchor (default is "center")
+        - "referential-id": id of a sibling block, which must have been defined before this one, to use as the referential (default is undefined which is equivalent to using the parent)
+        - "referential-anchor": location of the referential's anchor (default is "center")
+        - "autosize": "yes" or "no" value indicating that the block should automatically resize to fit its content (default is "no")
+        - "fade-state-changes": "yes" or "no" value indicating that the block should automatically fade in and out during a state change while its position and size are interpolated with a high acceleration / deceleration (default is "no")
+      Possible values for anchors are: top-left, top-center, top-right,
+                                       center-left, center, center-right,
+                                       bottom-left, bottom-center, bottom-right
+      Note that the way "source-id" and "autosize" attributes work depends on the block type
+      By convention block ids start with a pound if built-in i.e. set by the application
+    -->
+    <block type="group" id="foo" source-id="bar" hit-testing="enabled" hit-id="baz" anchor="top-left" referential-id="foobar" referential-anchor="center" autosize="yes" fade-state-changes="yes">
+      
+      <!--
+        State defining the block core properties: position, size, rotation, scale, opacity and hidden
+        Position, size, rotation and scale are defined from the anchor of the block
+        All values default to 0.0 except "size" which has a default value of (100% 100%), and scale and opacity which have a default of (1.0)
+        Note that if the size dimensions are negative, they will be subtracted from the parent block dimensions
+      -->
+      <state>
+        <position>25px 240px</position>
+        <size>20% 60%</size>
+        <rotation>10</rotation>
+        <scale>1.0</scale>
+        <opacity>0.5</opacity>
+        <hidden>yes</hidden>
+      </state>
+      
+      <!--
+        A block can have extra states identified with "id" attribute
+        Undefined properties take the value of the base state unless the "base-id" attribute exists and is set to a previously defined state
+      -->
+      <state id="foo" base-id="bar">
+        <size>40% 50%</size>
+        <rotation>10</rotation>
+      </state>
+      
+      <!--
+        Image file to use as a mask (default is undefined)
+        The intensity of the image is used as the alpha for the mask, which is resized to match the block dimensions
+      -->
+      <mask>Mask.png</mask>
+      
+      <!--
+        Draws a colored border around the block
+        Default is a width of 0.0 and a transparent color
+      -->
+      <border>
+        <width>25px</width>
+        <color>0.1 0.1 0.1 1.0</color>
+      </border>
+      
+      <!--
+        Rounds the corner of the block
+        Default is 0.0
+      -->
+      <corner-radius>24px</corner-radius>
+      
+      <!--
+        Animations are defined as a series of keyframes changing the values current state over time
+        The animation must have an "id" attribute and may also have these attributes:
+          - "state-id": block state ID from which undefined keyframe Undefined properties take their values from (default is undefined i.e. use the block's base state)
+          - "loop": loop the animation indefinitely (default is "no")
+          - "autoreverse": play the animation forward then backward when looping (default is "no")
+        keyframes must have a "time" attribute (the first time can be greater than 0.0 to delay the start of the animation)
+        Each keyframe after the first one can also have a "pacing" attribute set to "linear" (default), "ease-in", "ease-out" or
+          "ease-in-out"
+        IMPORTANT:
+          - Animating "size" is not compatible with autosizing
+          - Dimensions in keyframes of loop animations are expected to be expressed in absolute pixels or they will result in undefined behavior when the page is resized or its state is changed
+      -->
+      <animations>
+        
+        <animation id="enter" state-id="foo" loop="yes" autoreverse="yes">
+          
+          <keyframe time="0.0">
+            <position>20px 50px</position>
+            <opacity>0.5</opacity>
+            <rotation>20</rotation>
+            <scale>1.0</scale>
+          </keyframe>
+          
+          <keyframe time="1.0" pacing="ease-out">
+            <position>50px 60px</position>
+            <opacity>1.0</opacity>
+            <rotation>10</rotation>
+            <scale>1.2</scale>
+          </keyframe>
+          
+        <animation>
+        
+      <animations>
+      
+    </block>
+    
+    
+    <!--
+      Block that gets replaced by an exact copy of a virtual block whose id is "source-id"
+      All attributes and children elements are ignored, except "source-id"
+    -->
+    <block type="virtual" source-id="foobar"/>
+    
+    
+    <!--
+      Block that gets replaced by a copy of a function block whose id is "source-id" with its extra variables replaced
+      All attributes are ignored, except "source-id"
+    -->
+    <block type="function" source-id="foobar">
+      <variable1>value1</variable1>
+      <variable2>value2</variable2>
+    </block>
+    
+    
+    <!--
+      Block that acts as a group of other blocks for complex layouts
+      The "source-id" attribute is not supported
+      The "autosize" attribute resizes the block to fit all its children
+    -->
+    <block type="group">
+      
+      <!--
+        Clips the rendering of the children blocks to the group bounds (default is "no")
+      -->
+      <clipping>yes</clipping>
+      
+      <!--
+        Background color of the group block
+      -->
+      <background-color>0.1 0.1 0.1 1.0</background-color>
+      
+      <!--
+        List of chidren blocks
+      -->
+      <blocks>
+        <!-- ... -->
+      </blocks>
+      
+    </block>
+    
+    
+    <!--
+      Block that displays an image
+      The "source-id" attribute must be another sibling image block whose image to use
+      The "autosize" attribute resizes the block according to the "autosizing" behavior
+    -->
+    <block type="image">
+      
+      <!--
+        Image file to use from the template (default is undefined)
+      -->
+      <image>Image.jpg</image>
+      
+      <!--
+        Image file to use from the template (default is undefined)
+        Using "file" instead of "image" to specify the image means that it will be loaded only while the page is onscreen
+        This reduces the amount of memory used, but may be have an impact on performance and is recommended for large images only
+      -->
+      <file>Image.jpg</file>
+      
+      <!--
+        Possible values are: "resize" (default), "aspect-fill", "aspect-fit" and "aspect-auto"
+      -->
+      <autosizing>resize</autosizing>
+      
+      <!--
+        The block background color (default is transparent color)
+        This is only visible if the image has alpha or does not fit the entire block
+      -->
+      <background-color>0.1 0.1 0.1</background-color>
+      
+      <!--
+        Effect to apply to the image (default is undefined)
+        Currently, only 2 effects are supported: "monochrome", which takes no parameter, and "tint", which takes a color parameter
+      -->
+      <effect name="tint">
+        <color>0.1 0.1 0.1 1.0</color>
+      </effect>
+      
+    </block>
+    
+    
+    <!--
+      Block that displays an image as a pattern
+      The "source-id" and "autosize" attributes are not supported
+    -->
+    <block type="pattern">
+      
+      <!--
+        Image file to use from the template (default is undefined)
+        For maximum performance, the image should either have power-of-two dimensions or dimensions that minimize the number of tiles relatively to the total area
+      -->
+      <image>Image.jpg</image>
+      
+    </block>
+    
+    
+    <!--
+      Block that displays an image using 9-slice scaling
+      The "source-id" and "autosize" attributes are not supported
+    -->
+    <block type="sliced">
+      
+      <!--
+        Image file to use from the template (default is undefined)
+      -->
+      <image>Image.jpg</image>
+      
+      <!--
+        Caps to add inside the block (default is none)
+        Order is top, right, bottom, left
+      -->
+      <caps>10px 20px 10px 20px</caps>
+      
+    </block>
+    
+    
+    <!--
+      Block that displays a string with custom attributes
+      The "source-id" attribute must be another sibling image block whose overflowing text will flow into this one
+      The "autosize" attribute reduces the block dimension corresponding to the text direction - it will not work if the text does not fit entirely in the block or if there is more than 1 column
+    -->
+    <block type="string">
+      
+      <!--
+        Text to display (default is undefined)
+        This string will be attempted to be localized through the template's Localizable.strings file
+      -->
+      <string>Hello World</string>
+      
+      <!--
+        The text color (defaults is opaque black)
+      -->
+      <foreground-color>0.1 0.1 0.1 1.0</foreground-color>
+      
+      <!--
+        The block background color (default is transparent color)
+        For performance reasons, you should use transparent background only when strictly necessary
+      -->
+      <background-color>0.1 0.1 0.1</background-color>
+      
+      <!--
+        Margins to add inside the block (default is none)
+        Order is top, right, bottom, left
+      -->
+      <margins>25px 10px 30px 20px</margins>
+      
+      <!--
+        Text direction in the block
+        Possible values are "down" (default), "up", "left", "right", "down-flipped", "up-flipped", "left-flipped" and "right-flipped"
+      -->
+      <direction>up</direction>
+      
+      <!--
+        Text translation in the block
+      -->
+      <translation>25px</translation>
+      
+      <!--
+        Columns layout in the block (default is 1 and no inter-columns spacing)
+        Possible values for alignment are "center" (default), "top" and "bottom"
+      -->
+      <columns count="2">
+        <alignment>center</alignment>
+        <spacing>10px</spacing>
+      </columns>
+      
+      <!--
+        The font to use (default is Helvetica 12px with a ratio of 1.0 and no minimum size or kerning)
+        If "minimum-size" is greater than 0.0, the font size will be automatically reduced up to this minimum size so that
+          all the text fits in the block if possible
+      -->
+      <font>
+        <name>Helvetica-Bold</name>
+        <size>18px</size>
+        <minimum-size>10px</minimum-size>
+        <aspect-ratio>1.0</aspect-ratio>
+        <kerning>2px</kerning>
+      </font>
+      
+      <!--
+        Paragraph style for the string
+        Possible values for alignment are "center" (default), "left", "right" and "justify"
+        Possible values for line-breaking are "clip" (default), "truncate", "wrap-characters" and "wrap-words"
+        All other parameters default to 0.0, except "line-height-multiple" which defaults to 1.0
+        Note that "truncate" mode will force the string to be on a single line
+        If "display-entire-sentences" is set to yes, it the string doesn't fit entirely, it will be truncated to sentence boundaries
+      -->
+      <paragraph-style>
+        <alignment>justify</alignment>
+        <line-breaking>clip</line-breaking>
+        <line-height-multiple>1.5</line-height-multiple>
+        <before-spacing>10px</before-spacing>
+        <after-spacing>10px</after-spacing>
+        <head-indent>2px</head-indent>
+        <first-line-head-indent>2px</first-line-head-indent>
+        <first-character-scaling>2.0</first-character-scaling>
+        <display-entire-sentences>yes</display-entire-sentences>
+      </paragraph-style>
+      
+      <!--
+        The text shadow color (default is none)
+      -->
+      <shadow-color>0.2 0.2 0.2</shadow-color>
+      
+      <!--
+        The text shadow offset (default is 0,0)
+      -->
+      <shadow-offset>0px 1px</shadow-offset>
+      
+      <!--
+        Effect to apply to the string (default is undefined)
+        Currently, only 3 effects are supported: "lowercase", "uppercase" and "capitalized", which take no parameters
+      -->
+      <effect name="uppercase"/>
+      
+    </block>
+    
+    
+    <!--
+      Block that displays a movie
+      The "source-id" and "autosize" attributes are not supported
+    -->
+    <block type="movie">
+      
+      <!--
+        Movie file to use from the template (default is undefined)
+      -->
+      <movie>Movie.mp4</movie>
+      
+      <!--
+        Possible values are: "resize" (default), "aspect-fill", "aspect-fit"
+      -->
+      <scaling>resize</scaling>
+      
+      <!--
+        Loop movie playback (default is "no")
+      -->
+      <loop>yes</loop>
+      
+    </block>
+    
+    
+    <!--
+      Block that displays a looping slideshow of images
+      The "source-id" and "autosize" attributes are not supported
+    -->
+    <block type="slideshow">
+      
+      <!--
+        Image files to use from the template (default is undefined)
+      -->
+      <image>Image-1.jpg</image>
+      <image>Image-2.jpg</image>
+      <image>Image-3.jpg</image>
+      <image>Image-4.jpg</image>
+      <image>Image-5.jpg</image>
+      
+      <!--
+        Possible values are: "none" (default), "resize", "aspect-fill", "aspect-fit"
+      -->
+      <scaling>resize</scaling>
+      
+      <!--
+        Duration for which each image is displayed (default is 2 seconds)
+      -->
+      <display-duration>10.0</display-duration>
+      
+      <!--
+        Duration of the transition between 2 images (default is 1 second)
+      -->
+      <transition-duration>2.0</transition-duration>
+      
+      <!--
+        Pacing of the transition between 2 images: "linear" (default), "ease-in", "ease-out" or "ease-in-out"
+      -->
+      <transition-pacing>ease-out</transition-pacing>
+      
+      <!--
+        Type of the transition between 2 images: "fade" (default), "push", "conceal", "reveal", "flip", "curl-up" or "curl-down"
+      -->
+      <transition-type>push</transition-type>
+      
+      <!--
+        Direction of the transition between 2 images (ignored for "fade" transitions): "left", "right", "up" or "down"
+      -->
+      <transition-direction>right</transition-direction>
+      
+      <!--
+        The block background color (default is transparent color)
+      -->
+      <background-color>0.1 0.1 0.1</background-color>
+      
+    </block>
+    
+    
+  </blocks>
+  
+  
+</page>
