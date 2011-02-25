@@ -4,9 +4,9 @@
 The parser is case-sensitive and all elements, attributes, etc... must be in lowercase
 Elements or attributes not marked as "required" are optional
 Colors are specified as a whitespace separated list of 3 or 4 components in [0,1] range and in R, G, B, A order
-  If not specified, the alpha component is assumed to be 0.0
-Dimensions must be expressed in percents of the enclosing block dimensions (suffix "%") or absolute pixels (suffix "px"),
-  while dimension-less values are typically expressed in [0,1] range
+  (if not specified, the alpha component is assumed to be 1.0)
+Dimensions must be expressed in percents of the enclosing block dimensions (suffix "%") or absolute pixels (suffix "px")
+Dimension-less values are typically expressed in [0,1] range
 -->
 
 <!--
@@ -16,7 +16,7 @@ Templates are simply directories containing:
   - Zero or more .include files
   - An optional Localizable.strings file containing the common text
   - Optional Localizable.XXX.strings files containing localized text where XXX is the current language e.g. "en", "fr"...
-  - Built-in asset files like images
+  - Built-in asset files like images or movies
 
 The top-level element of a .page must be "page"
 
@@ -35,7 +35,8 @@ Built-in animations:
   
   <!--
     Includes the content of a .include file whose top-level element must be "include"
-    The "variables", "virtual-blocks", "function-blocks" and "blocks" children of this "include" element will be merged into the page
+    The "variables", "virtual-blocks", "function-blocks" and "blocks" children of this "include" element will be merged
+      into the page
   -->
   <include>Common</include>
   
@@ -106,31 +107,42 @@ Built-in animations:
     
     <!--
       Blocks are of a given type: "virtual", "function", "group", "gradient", "image", "pattern", "string" or "text"
-      The block position is defined as the location of its anchor relative to the "referential" anchor of a "referential" block
-      By default, the anchor and referential anchor are the centers of the blocks and the referential block is the parent block
+      The block position is defined as the location of its anchor relative to the "referential" anchor of a
+        "referential" block
+      By default, the anchor and referential anchor are the centers of the blocks
+      By default, the referential block is the parent block
       Supported attributes:
         - "type": the type of the block (required)
         - "id": uniquely identifies the block at the page level
-        - "source-id": id of a sibling block, which must have been defined before this one, whose content to use instead of the locally defined one
-        - "hit-testing": "enabled", "disabled" or "ignored" value indicating how the block is hit-testable (default is "enabled")
-        - "hit-id": id of a sibling block, which must have been defined before this one, to return as the proxy "hit" block on successful hit testing (default is undefined)
+        - "source-id": id of a sibling block, which must have been defined before this one, whose content to use instead
+                       of the locally defined one
+        - "hit-testing": "enabled", "disabled" or "ignored" value indicating how the block is hit-testable
+                         (default is "enabled")
+        - "hit-id": id of a sibling block, which must have been defined before this one, to return as the proxy "hit"
+                    block on successful hit testing (default is undefined)
         - "anchor": location of the block's anchor (default is "center")
-        - "referential-id": id of a sibling block, which must have been defined before this one, to use as the referential (default is undefined which is equivalent to using the parent)
+        - "referential-id": id of a sibling block, which must have been defined before this one, to use as the referential
+                            (default is undefined which is equivalent to using the parent)
         - "referential-anchor": location of the referential's anchor (default is "center")
-        - "autosize": "yes" or "no" value indicating that the block should automatically resize to fit its content (default is "no")
-        - "fade-state-changes": "yes" or "no" value indicating that the block should automatically fade in and out during a state change while its position and size are interpolated with a high acceleration / deceleration (default is "no")
+        - "autosize": "yes" or "no" value indicating that the block should automatically resize to fit its content
+                      (default is "no")
+        - "fade-state-changes": "yes" or "no" value indicating that the block should automatically fade in and out
+                                during a state change while its position and size are interpolated with a high
+                                acceleration / deceleration (default is "no")
       Possible values for anchors are: top-left, top-center, top-right,
                                        center-left, center, center-right,
                                        bottom-left, bottom-center, bottom-right
       Note that the way "source-id" and "autosize" attributes work depends on the block type
       By convention block ids start with a pound if built-in i.e. set by the application
     -->
-    <block type="group" id="foo" source-id="bar" hit-testing="enabled" hit-id="baz" anchor="top-left" referential-id="foobar" referential-anchor="center" autosize="yes" fade-state-changes="yes">
+    <block type="group" id="foo" source-id="bar" hit-testing="enabled" hit-id="baz" anchor="top-left"
+           referential-id="foobar" referential-anchor="center" autosize="yes" fade-state-changes="yes">
       
       <!--
         State defining the block core properties: position, size, rotation, scale, opacity and hidden
         Position, size, rotation and scale are defined from the anchor of the block
-        All values default to 0.0 except "size" which has a default value of (100% 100%), and scale and opacity which have a default of (1.0)
+        All values default to 0.0 except "size" which has a default value of (100% 100%), and scale and opacity which
+          have a default of (1.0)
         Note that if the size dimensions are negative, they will be subtracted from the parent block dimensions
       -->
       <state>
@@ -144,7 +156,8 @@ Built-in animations:
       
       <!--
         A block can have extra states identified with "id" attribute
-        Undefined properties take the value of the base state unless the "base-id" attribute exists and is set to a previously defined state
+        Undefined properties take the value of the base state unless the "base-id" attribute exists and is set to a
+          previously defined state
       -->
       <state id="foo" base-id="bar">
         <size>40% 50%</size>
@@ -175,15 +188,17 @@ Built-in animations:
       <!--
         Animations are defined as a series of keyframes changing the values current state over time
         The animation must have an "id" attribute and may also have these attributes:
-          - "state-id": block state ID from which undefined keyframe Undefined properties take their values from (default is undefined i.e. use the block's base state)
+          - "state-id": block state ID from which undefined keyframe Undefined properties take their values from
+                        (default is undefined i.e. use the block's base state)
           - "loop": loop the animation indefinitely (default is "no")
           - "autoreverse": play the animation forward then backward when looping (default is "no")
-        keyframes must have a "time" attribute (the first time can be greater than 0.0 to delay the start of the animation)
-        Each keyframe after the first one can also have a "pacing" attribute set to "linear" (default), "ease-in", "ease-out" or
-          "ease-in-out"
+        Keyframes must have a "time" attribute (the first time can be greater than 0.0 to delay the animation start)
+        Each keyframe after the first one can also have a "pacing" attribute set to "linear" (default), "ease-in",
+          "ease-out" or "ease-in-out"
         IMPORTANT:
           - Animating "size" is not compatible with autosizing
-          - Dimensions in keyframes of loop animations are expected to be expressed in absolute pixels or they will result in undefined behavior when the page is resized or its state is changed
+          - Dimensions in keyframes of loop animations are expected to be expressed in absolute pixels or they will
+            result in undefined behavior when the page is resized or its state is changed
       -->
       <animations>
         
@@ -269,7 +284,8 @@ Built-in animations:
       <!--
         Image file to use from the template (default is undefined)
         Using "file" instead of "image" to specify the image means that it will be loaded only while the page is onscreen
-        This reduces the amount of memory used, but may be have an impact on performance and is recommended for large images only
+        This reduces the amount of memory used, but may be have an impact on performance and is recommended for large
+          images only
       -->
       <file>Image.jpg</file>
       
@@ -286,7 +302,9 @@ Built-in animations:
       
       <!--
         Effect to apply to the image (default is undefined)
-        Currently, only 2 effects are supported: "monochrome", which takes no parameter, and "tint", which takes a color parameter
+        Currently, only 2 effects are supported:
+          - "monochrome", which takes no parameter
+          - "tint", which takes a color parameter
       -->
       <effect name="tint">
         <color>0.1 0.1 0.1 1.0</color>
@@ -303,7 +321,8 @@ Built-in animations:
       
       <!--
         Image file to use from the template (default is undefined)
-        For maximum performance, the image should either have power-of-two dimensions or dimensions that minimize the number of tiles relatively to the total area
+        For maximum performance, the image should either have power-of-two dimensions or dimensions that minimize the
+          number of tiles relatively to the total area
       -->
       <image>Image.jpg</image>
       
@@ -333,7 +352,8 @@ Built-in animations:
     <!--
       Block that displays a string with custom attributes
       The "source-id" attribute must be another sibling image block whose overflowing text will flow into this one
-      The "autosize" attribute reduces the block dimension corresponding to the text direction - it will not work if the text does not fit entirely in the block or if there is more than 1 column
+      The "autosize" attribute reduces the block dimension corresponding to the text direction
+        (it will not work if the text does not fit entirely in the block or if there is more than 1 column)
     -->
     <block type="string">
       
@@ -362,7 +382,8 @@ Built-in animations:
       
       <!--
         Text direction in the block
-        Possible values are "down" (default), "up", "left", "right", "down-flipped", "up-flipped", "left-flipped" and "right-flipped"
+        Possible values are "down" (default), "up", "left", "right", "down-flipped", "up-flipped", "left-flipped"
+          and "right-flipped"
       -->
       <direction>up</direction>
       
@@ -382,8 +403,8 @@ Built-in animations:
       
       <!--
         The font to use (default is Helvetica 12px with a ratio of 1.0 and no minimum size or kerning)
-        If "minimum-size" is greater than 0.0, the font size will be automatically reduced up to this minimum size so that
-          all the text fits in the block if possible
+        If "minimum-size" is greater than 0.0, the font size will be automatically reduced up to this minimum size
+          so that all the text fits in the block if possible
       -->
       <font>
         <name>Helvetica-Bold</name>
@@ -399,7 +420,8 @@ Built-in animations:
         Possible values for line-breaking are "clip" (default), "truncate", "wrap-characters" and "wrap-words"
         All other parameters default to 0.0, except "line-height-multiple" which defaults to 1.0
         Note that "truncate" mode will force the string to be on a single line
-        If "display-entire-sentences" is set to yes, it the string doesn't fit entirely, it will be truncated to sentence boundaries
+        If "display-entire-sentences" is set to yes, it the string doesn't fit entirely, it will be truncated to
+          sentence boundaries
       -->
       <paragraph-style>
         <alignment>justify</alignment>
@@ -492,7 +514,8 @@ Built-in animations:
       <transition-pacing>ease-out</transition-pacing>
       
       <!--
-        Type of the transition between 2 images: "fade" (default), "push", "conceal", "reveal", "flip", "curl-up" or "curl-down"
+        Type of the transition between 2 images: "fade" (default), "push", "conceal", "reveal", "flip", "curl-up"
+          or "curl-down"
       -->
       <transition-type>push</transition-type>
       
